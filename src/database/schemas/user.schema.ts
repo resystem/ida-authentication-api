@@ -30,6 +30,12 @@ export class User {
   @Prop({ required: true })
   password: string;
 
+  @Prop({ default: '' })
+  first_name: string;
+
+  @Prop({ default: '' })
+  last_name: string;
+
   @Prop({ active: true })
   active: boolean;
 
