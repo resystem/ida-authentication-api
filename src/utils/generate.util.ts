@@ -16,3 +16,26 @@ export const generateKey = (length = 32) => {
 
   return text;
 };
+
+/**
+ * function that generate phone validation code and save phone in the user
+ * @returns {string} random string to phone validation
+ */
+export const generateRandomCode = () => {
+  const codeSize = 4;
+  const fisrtPossibleChars = '123456789';
+  const possibleChars = '0123456789';
+  let text = '';
+  for (let i = 0; i < codeSize; i += 1) {
+    if (i === 0) {
+      text += fisrtPossibleChars.charAt(
+        Math.floor(Math.random() * fisrtPossibleChars.length),
+      );
+    } else {
+      text += possibleChars.charAt(
+        Math.floor(Math.random() * possibleChars.length),
+      );
+    }
+  }
+  return text;
+};

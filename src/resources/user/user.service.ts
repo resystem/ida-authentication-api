@@ -6,6 +6,7 @@ import { User, UserDocument } from 'src/database/schemas/user.schema';
 interface UserFilter {
   _id?: string;
   username?: string;
+
 }
 
 @Injectable()
@@ -16,7 +17,7 @@ export class UserService {
    *
    * @param text
    */
-  async findOne(text: string): Promise<User> {
+  async findOneById(text: string): Promise<User> {
     const filter: UserFilter = {};
 
     // valid if the text is object id
@@ -26,6 +27,18 @@ export class UserService {
       filter.username = text;
     }
 
+    return this.user
+      .findOne({
+        $or: [{ _id: text }, { username: text }, { 'email.address': text }],
+      })
+      .exec();
+  }
+
+  /**
+   *
+   * @param text
+   */
+  async findOne(filter): Promise<User> {
     return this.user.findOne(filter).exec();
   }
 
@@ -36,6 +49,15 @@ export class UserService {
    */
   async create(data: User): Promise<User> {
     const user = new this.user(data);
-    return await user.save();
+    return user.save();
+  }
+
+  /**
+   * update on mongodb an user by ativist id
+   * @param {string} ida user id to be update
+   * @param {User} data validated information to updated on database
+   */
+  async update(ida: string, data: User): Promise<User> {
+    return this.user.findOneAndUpdate({ _id: ida }, data, { new: true });
   }
 }
