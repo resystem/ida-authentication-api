@@ -1,0 +1,53 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo Initalling source NPM depencies
+      - yarn
+  pre_build:
+    commands:
+      - npm nx --version
+
+  build:
+    commands:
+      - echo Projects build started on `date`
+      - echo Using variables
+      - echo NODE_ENV = $NODE_ENV
+
+      # Run Tests
+      # - echo Backend build started on `date`
+      # - npm run test:gt:runs
+
+      # Building backend
+      - echo Backend build started on `date`
+      - yarn build
+
+      - echo Backend build completed on `date`
+
+      # Creating deploy folder
+      - mkdir athentication-api
+      
+      # populate deploy folder
+      - mkdir athentication-api
+      - mkdir athentication-api/dist
+      - cp -r dist/* athentication-api/dist/
+
+      # Delete node_modules
+      - rm -rf node_modules
+
+      # List backck and frontend folders
+      - ls ./athentication-api
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
+
+artifacts:
+  files:
+    - '**/*'
+  secondary-artifacts:
+    athentication-api:
+      files:
+        - '**/*'
+      base-directory: athentication-api
