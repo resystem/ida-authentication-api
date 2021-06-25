@@ -29,7 +29,6 @@ phases:
       - mkdir athentication-api
       
       # populate deploy folder
-      - mkdir athentication-api
       - mkdir athentication-api/dist
       - cp -r dist/* athentication-api/dist/
 
