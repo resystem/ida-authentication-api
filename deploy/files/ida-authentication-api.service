@@ -1,0 +1,16 @@
+[Unit]
+Description=IDA AUTHORIZATION API
+Documentation=https://github.com/resystem/ida-authentication-api
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/ida-authentication-api
+ExecStart=/usr/bin/node dist/main
+EnvironmentFile=/etc/environmentsz/ida-authentication-api.config
+Restart=always
+StartLimitBurst=0
+
+[Install]
+WantedBy=multi-user.target
