@@ -56,7 +56,7 @@ artifacts:
   files:
     - '**/*'
   secondary-artifacts:
-    athentication-api:
+    athentication:
       files:
         - '**/*'
       base-directory: athentication-api
