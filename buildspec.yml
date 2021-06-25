@@ -40,7 +40,9 @@ phases:
       - mkdir athentication-api/server-files
       - cp -r deploy/files/* athentication-api/server-files/
       
-      # populate dist in deploy folder
+      # Get config files
+      - cp package.json ./athentication-api/package.json
+      - cp appspec.yml ./athentication-api/appspec.yml
 
       # Delete node_modules
       - rm -rf node_modules

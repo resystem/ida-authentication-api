@@ -1,25 +1,25 @@
 version: 0.0
 os: linux
 files:
-  - source: ./athentication-api/dist
-    destination: /home/ubuntu/ida-authentication-api/dist
+  - source: ./dist/
+    destination: /home/ubuntu/ida-authentication-api/dist/
 
-  - source: ./athentication-api/package.json
-    destination: /home/ubuntu/ida-authentication-api
+  - source: ./package.json
+    destination: /home/ubuntu/ida-authentication-api/
  
-  - source: ./athentication-api/server-files
+  - source: ./server-files/
     destination: /lib/systemd/system/
 
 hooks:
   BeforeInstall:
-    - location: ./athentication-api/scripts/before_install.sh
+    - location: ./scripts/before_install.sh
       timeout: 300
       runas: root
   ApplicationStop:
-    - location: ./athentication-api/scripts/application_stop.sh
+    - location: ./scripts/application_stop.sh
       timeout: 300
       runas: root
   ApplicationStart:
-    - location: ./athentication-api/scripts/application_start.sh
+    - location: ./scripts/application_start.sh
       timeout: 300
       runas: root
