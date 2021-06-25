@@ -38,7 +38,8 @@ phases:
     
       # Populate server files into deploy folder
       - mkdir athentication-api/server-files
-      - cp -r deploy/files/* athentication-api/server-files/
+      - cp -r deploy/files/ida-authentication-api.service athentication-api/server-files/ida-authentication-api.service
+      - cp -r deploy/files/nginx.config athentication-api/server-files/default
       
       # Get config files
       - cp package.json ./athentication-api/package.json

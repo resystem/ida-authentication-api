@@ -7,8 +7,11 @@ files:
   - source: ./package.json
     destination: /home/ubuntu/ida-authentication-api/
  
-  - source: ./server-files/
+  - source: ./server-files/ida-authentication-api.service
     destination: /lib/systemd/system/
+
+  - source: ./server-files/default
+    destination: /etc/nginx/sites-enabled/
 
 hooks:
   BeforeInstall:
