@@ -28,9 +28,19 @@ phases:
       # Creating deploy folder
       - mkdir athentication-api
       
-      # populate deploy folder
+      # populate dist into deploy folder
       - mkdir athentication-api/dist
       - cp -r dist/* athentication-api/dist/
+      
+      # Populate scripts into deploy folder
+      - mkdir athentication-api/scripts
+      - cp -r deploy/scripts/* athentication-api/scripts/
+    
+      # Populate server files into deploy folder
+      - mkdir athentication-api/server-files
+      - cp -r deploy/files/* athentication-api/server-files/
+      
+      # populate dist in deploy folder
 
       # Delete node_modules
       - rm -rf node_modules
