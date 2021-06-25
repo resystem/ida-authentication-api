@@ -1,4 +1,3 @@
-/home/ubuntu/gt/env.sh
 
 cd /home/ubuntu/ida-authentication-api/
 npm install
