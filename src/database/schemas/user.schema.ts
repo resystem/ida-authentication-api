@@ -24,9 +24,6 @@ interface ResetedPassword {
 
 @Schema({ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
 export class User {
-  @Prop({ unique: true, required: true })
-  username: string;
-
   @Prop({ required: true })
   password: string;
 
@@ -41,7 +38,7 @@ export class User {
 
   @Prop({
     type: {
-      address: { type: String, default: null, lowercase: true },
+      address: { type: String, required: true, lowercase: true },
       valid: { type: Boolean, default: false },
       confirmation_code: { type: String, default: null },
     },

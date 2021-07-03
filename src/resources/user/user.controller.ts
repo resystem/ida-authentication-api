@@ -1,4 +1,12 @@
-import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Res,
+} from '@nestjs/common';
 import { compare } from 'bcrypt';
 import { sign, verify } from 'jsonwebtoken';
 import { hash } from 'src/utils/password.util';
@@ -11,9 +19,41 @@ import { send } from 'src/libs/email.lib';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  private generateToken(username: string, id: string): string {
-    return sign({ username: username, ida: id }, process.env.SECRET, {
+  private generateToken(email: string, id: string): string {
+    return sign({ email: email, ida: id }, process.env.SECRET, {
       expiresIn: '7d',
+    });
+  }
+
+  @Get('/user/:id')
+  /**
+   * it is receive a get user request by id, email or username
+   * @param {Response} response response data
+   * @param {object} id user reference
+   * @returns {Promise} contains a new logged user
+   */
+  async getUser(@Res() response, @Param('id') id: any) {
+    const $or: any = [{ username: id }, { 'email.address': id }];
+    if (id.match(/^[0-9a-fA-F]{24}$/)) $or.push({ _id: id });
+
+    let user;
+
+    try {
+      user = await this.userService.findOne({ $or });
+    } catch (err) {
+      throw 'Internal Server Error';
+    }
+
+    if (!user) {
+      return response
+        .status(HttpStatus.NOT_FOUND)
+        .json({ error: 'user/not-found' });
+    }
+
+    // send success status
+    return response.status(HttpStatus.OK).json({
+      ...user.toJSON(),
+      password: '',
     });
   }
 
@@ -29,8 +69,9 @@ export class UserController {
 
     try {
       // try find an user
-      user = await this.userService.findOneById(body.username);
+      user = await this.userService.findOneById(body.email);
     } catch (err) {
+      console.log(err);
       throw 'Internal Server Error';
     }
 
@@ -45,6 +86,7 @@ export class UserController {
       // encrypt password
       body.password = await hash(body.password);
     } catch (err) {
+      console.log(err);
       throw 'Internal Server Error';
     }
 
@@ -52,6 +94,7 @@ export class UserController {
       // call service to create a new user
       user = await this.userService.create(body);
     } catch (err) {
+      console.log(err);
       throw 'Internal Server Error';
     }
 
@@ -59,7 +102,7 @@ export class UserController {
     return response.status(HttpStatus.CREATED).json({
       ...user.toJSON(),
       password: '',
-      token: this.generateToken(user.username, user._id),
+      token: this.generateToken(user.email, user._id),
     });
   }
 
@@ -74,7 +117,7 @@ export class UserController {
     let user;
 
     try {
-      user = await this.userService.findOneById(body.username);
+      user = await this.userService.findOneById(body.email);
     } catch (err) {
       throw 'Internal Server Error';
     }
@@ -96,7 +139,7 @@ export class UserController {
     return response.status(HttpStatus.CREATED).json({
       ...user.toJSON(),
       password: '',
-      token: this.generateToken(user.username, user._id),
+      token: this.generateToken(user.email, user._id),
     });
   }
 
@@ -136,20 +179,21 @@ export class UserController {
     return response.status(HttpStatus.CREATED).json({
       ...user.toJSON(),
       password: '',
-      token: this.generateToken(user.username, user._id),
+      token: this.generateToken(user.email, user._id),
     });
   }
 
-  @Post('/user/request-reset-password')
+  @Post('/user/request-email-confirmation')
   /**
-   * check if user token is valid
+   * request email confirmation
    * @param {Response} response response data
    * @param {object} body user data to be resgister
    * @param {string} body.email user email to request validation
    * @returns {Promise} contains a new logged user
    */
-  async requestResetPassword(@Res() response, @Body() body) {
-    const emailExpressionValidator = /^[a-z0-9._-]{2,}@[a-z0-9]{2,}\.[a-z0-9]{2,}(\.[a-z0-9]{2,})*?$/;
+  async requestEmailConfirmation(@Res() response, @Body() body) {
+    const emailExpressionValidator =
+      /^[a-z0-9._-]{2,}@[a-z0-9]{2,}\.[a-z0-9]{2,}(\.[a-z0-9]{2,})*?$/;
 
     // check if has valid email
     const isValidEmail = emailExpressionValidator.test(body.email);
@@ -165,7 +209,6 @@ export class UserController {
       user = await this.userService.findOne({
         'email.address': body.email,
       });
-      console.log('🚀 ~ user', user);
     } catch (err) {
       throw 'Internal Server Error';
     }
@@ -182,14 +225,15 @@ export class UserController {
       valid: false,
       confirmation_code: generateRandomCode(),
     };
+
     try {
-      await send(data);
+      await this.userService.update(user._id, data);
     } catch (err) {
       throw 'Internal Server Error';
     }
 
     try {
-      await this.userService.update(user._id, data);
+      await send(data);
     } catch (err) {
       throw 'Internal Server Error';
     }
@@ -200,18 +244,17 @@ export class UserController {
       password: '',
     });
   }
-  
-  @Post('/user/reset-password')
+
+  @Post('/user/validate-email-code')
   /**
-   * check if user token is valid
+   * request email confirmation
    * @param {Response} response response data
    * @param {object} body user data to be resgister
-   * @param {string} body.email user email to be request validate
-   * @param {string} body.code email validation code
-   * @param {string} body.password new password
+   * @param {string} body.email user email
+   * @param {string} body.code user code to validate
    * @returns {Promise} contains a new logged user
    */
-  async resetPassorwd(@Res() response, @Body() body) {
+  async validateEmailCode(@Res() response, @Body() body) {
     const emailExpressionValidator =
       /^[a-z0-9._-]{2,}@[a-z0-9]{2,}\.[a-z0-9]{2,}(\.[a-z0-9]{2,})*?$/;
 
@@ -230,7 +273,174 @@ export class UserController {
         'email.address': body.email,
         'email.confirmation_code': body.code,
       });
-      console.log('🚀 ~ user', user);
+    } catch (err) {
+      throw 'Internal Server Error';
+    }
+
+    if (!user) {
+      return response
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ error: 'user/invalid-code' });
+    }
+
+    const data = new User();
+    data.email = {
+      address: body.email,
+      valid: true,
+      confirmation_code: null,
+    };
+
+    try {
+      await this.userService.update(user._id, data);
+    } catch (err) {
+      throw 'Internal Server Error';
+    }
+
+    // send success status
+    return response.status(HttpStatus.OK).json({
+      ...user.toJSON(),
+      password: '',
+    });
+  }
+
+  @Post('/user/request-reset-password')
+  /**
+   * check if user token is valid
+   * @param {Response} response response data
+   * @param {object} body user data to be resgister
+   * @param {string} body.email user email to request validation
+   * @returns {Promise} contains a new logged user
+   */
+  async requestResetPassword(@Res() response, @Body() body) {
+    const emailExpressionValidator =
+      /^[a-z0-9._-]{2,}@[a-z0-9]{2,}\.[a-z0-9]{2,}(\.[a-z0-9]{2,})*?$/;
+
+    // check if has valid email
+    const isValidEmail = emailExpressionValidator.test(body.email);
+    if (!isValidEmail) {
+      return response
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ error: 'user/invalid-email' });
+    }
+
+    let user;
+
+    try {
+      user = await this.userService.findOne({
+        'email.address': body.email,
+      });
+    } catch (err) {
+      throw 'Internal Server Error';
+    }
+
+    if (!user) {
+      return response
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ error: 'user/invalid-code' });
+    }
+
+    const data = new User();
+    data.email = {
+      address: body.email,
+      valid: user.email.valid,
+      confirmation_code: generateRandomCode(),
+    };
+
+    try {
+      await this.userService.update(user._id, data);
+    } catch (err) {
+      throw 'Internal Server Error';
+    }
+
+    try {
+      await send(data);
+    } catch (err) {
+      throw 'Internal Server Error';
+    }
+
+    // send success status
+    return response.status(HttpStatus.OK).json({
+      ...user.toJSON(),
+      password: '',
+    });
+  }
+
+  @Post('/user/validate-reset-password-code')
+  /**
+   * request email confirmation
+   * @param {Response} response response data
+   * @param {object} body user data to be resgister
+   * @param {string} body.email user email
+   * @param {string} body.code user code to validate
+   * @returns {Promise} contains a new logged user
+   */
+  async validateResetPasswordCode(@Res() response, @Body() body) {
+    const emailExpressionValidator =
+      /^[a-z0-9._-]{2,}@[a-z0-9]{2,}\.[a-z0-9]{2,}(\.[a-z0-9]{2,})*?$/;
+
+    // check if has valid email
+    const isValidEmail = emailExpressionValidator.test(body.email);
+    if (!isValidEmail) {
+      return response
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ error: 'user/invalid-email' });
+    }
+
+    let user;
+
+    try {
+      user = await this.userService.findOne({
+        'email.address': body.email,
+        'email.confirmation_code': body.code,
+      });
+    } catch (err) {
+      throw 'Internal Server Error';
+    }
+
+    if (!user) {
+      return response
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ error: 'user/invalid-code' });
+    }
+
+    const parsedUSer = user.toJSON();
+    delete parsedUSer.password;
+
+    // send success status
+    return response.status(HttpStatus.OK).json({
+      ...parsedUSer,
+    });
+  }
+
+  @Post('/user/reset-password')
+  /**
+   * check if user token is valid
+   * @param {Response} response response data
+   * @param {object} body user data to be resgister
+   * @param {string} body.email user email to be request validate
+   * @param {string} body.code email validation code
+   * @param {string} body.password new password
+   * @returns {Promise} contains a new logged user
+   */
+  async resetPassword(@Res() response, @Body() body) {
+    const emailExpressionValidator =
+      /^[a-z0-9._-]{2,}@[a-z0-9]{2,}\.[a-z0-9]{2,}(\.[a-z0-9]{2,})*?$/;
+
+    // check if has valid email
+    const isValidEmail = emailExpressionValidator.test(body.email);
+    if (!isValidEmail) {
+      return response
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ error: 'user/invalid-email' });
+    }
+
+    let user;
+
+    try {
+      user = await this.userService.findOne({
+        'email.address': body.email,
+        'email.confirmation_code': body.code,
+      });
     } catch (err) {
       throw 'Internal Server Error';
     }
@@ -244,11 +454,9 @@ export class UserController {
     try {
       // encrypt password
       password = await hash(body.password);
-      console.log('🚀 ~ password', password);
     } catch (err) {
       throw 'Internal Server Error';
     }
-
 
     const data = new User();
     data.email = {
