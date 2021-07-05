@@ -5,8 +5,7 @@ import { User, UserDocument } from 'src/database/schemas/user.schema';
 
 interface UserFilter {
   _id?: string;
-  username?: string;
-
+  $or?: any;
 }
 
 @Injectable()
@@ -24,14 +23,10 @@ export class UserService {
     if (isValidObjectId(text)) {
       filter._id = text;
     } else {
-      filter.username = text;
+      filter.$or = [{ username: text }, { 'email.address': text }];
     }
 
-    return this.user
-      .findOne({
-        $or: [{ _id: text }, { username: text }, { 'email.address': text }],
-      })
-      .exec();
+    return this.user.findOne(filter).exec();
   }
 
   /**
