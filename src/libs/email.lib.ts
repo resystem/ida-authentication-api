@@ -28,7 +28,7 @@ const getEmailParams = (to) => ({
       Data: 'Código de confirmação',
     },
   },
-  Source: 'gabrielfurlan05@gmail.com',
+  Source: process.env.EMAIL_SOURCE,
 });
 
 /**
