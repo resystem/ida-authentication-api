@@ -20,7 +20,6 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   private generateToken(email: string, id: string): string {
-    console.log('🚀 ~ process.env.SECRET', process.env.SECRET);
     return sign({ email: email, ida: id }, process.env.SECRET, {
       expiresIn: '7d',
     });
@@ -66,7 +65,6 @@ export class UserController {
    * @returns {Promise} promise contains a new logged user
    */
   async signup(@Res() response, @Body() body) {
-    console.log('🚀 ~ body', body);
     let user;
 
     try {
@@ -87,18 +85,16 @@ export class UserController {
     try {
       // encrypt password
       body.password = await hash(body.password);
-      console.log('🚀 ~ body.password', body.password);
     } catch (err) {
-      console.log([err]);
+      console.log('hash - ERROR',[err]);
       throw 'Internal Server Error';
     }
 
     try {
       // call service to create a new user
       user = await this.userService.create(body);
-      console.log('🚀 ~ user', user);
     } catch (err) {
-      console.log('userService.create', [err]);
+      console.log('userService.create - ERROR', [err]);
       throw 'Internal Server Error';
     }
 
@@ -110,7 +106,7 @@ export class UserController {
         token: this.generateToken(user.email, user._id),
       });
     } catch (err) {
-      console.log('🚀 ~ err', err);
+      console.log('generateToken - ERROR', err);
       throw 'Internal Server Error';
     }
 
@@ -202,7 +198,6 @@ export class UserController {
    * @returns {Promise} contains a new logged user
    */
   async requestEmailConfirmation(@Res() response, @Body() body) {
-    console.log('🚀 ~ requestEmailConfirmation');
     const emailExpressionValidator =
       /^[a-z0-9._-]{2,}@[a-z0-9]{2,}\.[a-z0-9]{2,}(\.[a-z0-9]{2,})*?$/;
 
@@ -220,9 +215,8 @@ export class UserController {
       user = await this.userService.findOne({
         'email.address': body.email,
       });
-      console.log('🚀 ~ user', user);
     } catch (err) {
-      console.log('🚀 ~ err', [err]);
+      console.log('err', [err]);
       throw 'Internal Server Error';
     }
 
@@ -241,17 +235,15 @@ export class UserController {
 
     try {
      const a = await this.userService.update(user._id, data);
-     console.log('🚀 ~ userService.update', a);
     } catch (err) {
-      console.log('🚀 ~ err', [err]);
+      console.log('err', [err]);
       throw 'Internal Server Error';
     }
 
     try {
       const a = await send(data);
-      console.log('🚀 ~ send', a);
     } catch (err) {
-      console.log('🚀 ~ err', [err]);
+      console.log('err', [err]);
       throw 'Internal Server Error';
     }
 
