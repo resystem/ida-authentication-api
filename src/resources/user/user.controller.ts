@@ -220,7 +220,9 @@ export class UserController {
       user = await this.userService.findOne({
         'email.address': body.email,
       });
+      console.log('🚀 ~ user', user);
     } catch (err) {
+      console.log('🚀 ~ err', [err]);
       throw 'Internal Server Error';
     }
 
@@ -238,14 +240,18 @@ export class UserController {
     };
 
     try {
-      await this.userService.update(user._id, data);
+     const a = await this.userService.update(user._id, data);
+     console.log('🚀 ~ userService.update', a);
     } catch (err) {
+      console.log('🚀 ~ err', [err]);
       throw 'Internal Server Error';
     }
 
     try {
-      await send(data);
+      const a = await send(data);
+      console.log('🚀 ~ send', a);
     } catch (err) {
+      console.log('🚀 ~ err', [err]);
       throw 'Internal Server Error';
     }
 
