@@ -95,8 +95,9 @@ export class UserController {
     try {
       // call service to create a new user
       user = await this.userService.create(body);
+      console.log('🚀 ~ user', user);
     } catch (err) {
-      console.log([err]);
+      console.log('userService.create', [err]);
       throw 'Internal Server Error';
     }
 
@@ -194,6 +195,7 @@ export class UserController {
    * @returns {Promise} contains a new logged user
    */
   async requestEmailConfirmation(@Res() response, @Body() body) {
+    console.log('🚀 ~ requestEmailConfirmation');
     const emailExpressionValidator =
       /^[a-z0-9._-]{2,}@[a-z0-9]{2,}\.[a-z0-9]{2,}(\.[a-z0-9]{2,})*?$/;
 
