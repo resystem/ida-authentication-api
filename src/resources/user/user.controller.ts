@@ -65,6 +65,7 @@ export class UserController {
    * @returns {Promise} promise contains a new logged user
    */
   async signup(@Res() response, @Body() body) {
+    console.log('🚀 ~ body', body);
     let user;
 
     try {
@@ -85,8 +86,9 @@ export class UserController {
     try {
       // encrypt password
       body.password = await hash(body.password);
+      console.log('🚀 ~ body.password', body.password);
     } catch (err) {
-      console.log(err);
+      console.log([err]);
       throw 'Internal Server Error';
     }
 
@@ -94,7 +96,7 @@ export class UserController {
       // call service to create a new user
       user = await this.userService.create(body);
     } catch (err) {
-      console.log(err);
+      console.log([err]);
       throw 'Internal Server Error';
     }
 
