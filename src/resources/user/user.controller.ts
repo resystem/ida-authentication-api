@@ -20,6 +20,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   private generateToken(email: string, id: string): string {
+    console.log('🚀 ~ process.env.SECRET', process.env.SECRET);
     return sign({ email: email, ida: id }, process.env.SECRET, {
       expiresIn: '7d',
     });
@@ -101,12 +102,18 @@ export class UserController {
       throw 'Internal Server Error';
     }
 
-    // send success status and created application
-    return response.status(HttpStatus.CREATED).json({
-      ...user.toJSON(),
-      password: '',
-      token: this.generateToken(user.email, user._id),
-    });
+    try {
+      // send success status and created application
+      return response.status(HttpStatus.CREATED).json({
+        ...user.toJSON(),
+        password: '',
+        token: this.generateToken(user.email, user._id),
+      });
+    } catch (err) {
+      console.log('🚀 ~ err', err);
+      throw 'Internal Server Error';
+    }
+
   }
 
   @Post('/user/signin')
