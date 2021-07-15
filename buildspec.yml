@@ -41,6 +41,8 @@ phases:
       - cp -r deploy/files/ida-authentication-api.service athentication-api/server-files/ida-authentication-api.service
       - cp -r deploy/files/nginx.config athentication-api/server-files/default
       
+      - perl -pi -e "s/__SERVER_NAME__/$SERVER_NAME/g; s/__SSL_CERTIFICATE__/$SSL_CERTIFICATE/g; s/__SSL_CERTIFICATE_KEY__/$SSL_CERTIFICATE_KEY/g "  athentication-api/server-files/default
+
       # Get config files
       - cp package.json ./athentication-api/package.json
       - cp appspec.yml ./athentication-api/appspec.yml
